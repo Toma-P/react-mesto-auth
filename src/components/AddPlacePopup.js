@@ -29,6 +29,7 @@ function AddPlacePopup({isOpen, onClose, onAddPlace, isLoading}) {
 
   return (
     <PopupWithForm 
+      type="popup"
       isOpen={isOpen}
       onClose={onClose}  
       name="add-card" 
