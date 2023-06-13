@@ -15,7 +15,6 @@ import { api } from '../utils/Api.js';
 import { register, authorization, checkToken } from '../utils/authApi.js';
 import { CurrentUserContext } from '../contexts/CurrentUserContext.js';
 import Register from './Register.js';
-import PageNotFound from './PageNotFound.js';
 
 function App() {
   const [currentUser, setCurrentUser] = useState({});
@@ -29,17 +28,30 @@ function App() {
   const [cardDelete, setCardDelete] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [loggedIn, setLoggedIn] = useState(false);
-  const [isChecking, setIsChecking] = useState(true);
+  //const [isChecking, setIsChecking] = useState(true);
   const [registered, setRegistered] = useState(false);
   const [userEmail, setUserEmail] = useState('');
   const navigate = useNavigate();
 
   React.useEffect(() => {
     const token = localStorage.getItem('token');
+
     if(token) {
-      checkValidToken(token);
+      checkToken(token)
+        .then((res) => {
+          setUserEmail(res.data.email);
+          setLoggedIn(true);
+         // setIsChecking(false);
+          navigate("/");
+      })
+      .catch((err) => {
+        console.log("Ошибка страницы:", err);
+      })
     }
-    
+  }, [])
+
+
+  React.useEffect(() => {
     if(loggedIn) {
       api.getUserInfo()
       .then((res) => {
@@ -56,7 +68,7 @@ function App() {
         .catch((err) => {
           console.log("Ошибка страницы:", err);
         })
-        .finally(() => setIsChecking(false))
+       // .finally(() => setIsChecking(false))
     }
    
   }, [loggedIn])
@@ -148,7 +160,10 @@ function App() {
       .then((res) => {
         if(res.token) {
           localStorage.setItem('token', res.token);
-          checkValidToken(res.token);
+          setUserEmail(data.email);
+          setLoggedIn(true);
+         // setIsChecking(false);
+          navigate("/");
         }
       })
       .catch((err) => {
@@ -156,23 +171,12 @@ function App() {
       })
   }
 
-  function checkValidToken(token) {
-    checkToken(token)
-      .then((res) => {
-        setUserEmail(res.data.email);
-        setLoggedIn(true);
-        setIsChecking(false);
-        navigate("/");
-      })
-      .catch((err) => {
-        console.log("Ошибка страницы:", err);
-      })
-  }
-
+  
   function signOut() {
     localStorage.removeItem('token');
     setLoggedIn(false);
     navigate('/sign-in');
+    setUserEmail("");
   }
 
   function closeAllPopups() {
@@ -204,7 +208,8 @@ function App() {
   return (
     <div className="page">
       <CurrentUserContext.Provider value={currentUser}>
-      {loggedIn && <Header email={userEmail} link="/sign-in" linkText="Выйти" onLinkClick={signOut}/>}
+      <Header email={userEmail} onLinkClick={signOut} />
+      
         <Routes>
           <Route path="/sign-in" element={<Login 
             onAuthorization={handleAuthorization}
@@ -217,7 +222,6 @@ function App() {
           <Route path="/" element={<ProtectedRoute 
             loggedIn={loggedIn} 
             element={Main}
-            isChecking={isChecking}
             initialCards={cards}
             onCardClick={setSelectedCard} 
             onEditProfile={handleEditProfileClick} 
@@ -227,7 +231,7 @@ function App() {
             onCardLike={handleCardLike}
             />} 
           />    
-          <Route path='*' element={<PageNotFound />} /> 
+          
         </Routes>
         {loggedIn && <Footer />}
         <EditProfilePopup 
