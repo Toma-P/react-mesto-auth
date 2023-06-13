@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import { Routes, Route, useNavigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import Header from "./Header.js";
 import Main from './Main.js';
 import Footer from "./Footer.js";
@@ -231,7 +231,7 @@ function App() {
             onCardLike={handleCardLike}
             />} 
           />    
-          
+          <Route path="*" element={<Navigate to={loggedIn ? "/" : "/sign-in"}/>} />
         </Routes>
         {loggedIn && <Footer />}
         <EditProfilePopup 
